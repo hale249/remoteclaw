@@ -1,0 +1,41 @@
+{
+  "name": "remoteclaw",
+  "version": "0.1.0",
+  "description": "AI Coding Agent - Chat → Code → Build → Preview → Verify",
+  "type": "module",
+  "bin": {
+    "remoteclaw": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": ["ai", "agent", "claude", "telegram", "preview", "tunnel"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hale249/remoteclaw"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.0",
+    "grammy": "^1.35.0",
+    "better-sqlite3": "^11.0.0",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.0",
+    "execa": "^9.5.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.8.0"
+  }
+}

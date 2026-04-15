@@ -1,0 +1,208 @@
+# ============================================================
+# RemoteClaw Configuration
+# All sections are optional — sane defaults are applied.
+# Environment variables: use ${VAR_NAME} syntax.
+# ============================================================
+
+# --- Channels ---
+# At least one channel must be configured.
+channels:
+  telegram:
+    bot_token: ${TELEGRAM_BOT_TOKEN}
+    mode: polling                       # polling | webhook
+  # slack:
+  #   bot_token: ${SLACK_BOT_TOKEN}
+  #   app_token: ${SLACK_APP_TOKEN}
+  # discord:
+  #   bot_token: ${DISCORD_BOT_TOKEN}
+
+# --- Auth ---
+auth:
+  allowed_telegram_ids:
+    - 123456789
+  admin_telegram_ids:
+    - 123456789
+
+# --- Agent Profiles ---
+# Define reusable agent profiles. Projects reference them by name.
+# "default" is auto-created if not defined.
+agents:
+  default:
+    model: claude-sonnet-4-20250514
+    max_budget_usd: 5.0
+    max_turns: 50
+
+  java-senior:
+    model: claude-opus-4-20250514
+    system_prompt: |
+      You are a senior Java/Spring Boot developer.
+      Use constructor injection, not @Autowired.
+      Follow existing patterns in the project.
+    max_budget_usd: 10.0
+    max_turns: 80
+
+  php-dev:
+    model: claude-sonnet-4-20250514
+    system_prompt: |
+      You are a Laravel expert.
+      Use Eloquent ORM. Follow PSR-12.
+    max_budget_usd: 5.0
+    max_turns: 50
+
+  go-dev:
+    model: claude-sonnet-4-20250514
+    system_prompt: |
+      You are a Go developer.
+      Follow Go idioms. Use stdlib when possible.
+      Handle errors explicitly.
+    max_budget_usd: 5.0
+    max_turns: 50
+
+  reviewer:
+    model: claude-sonnet-4-20250514
+    system_prompt: |
+      You are a code reviewer. Analyze code for:
+      - Bugs, security issues, performance
+      - Code quality, naming, patterns
+      Never edit files. Only report issues.
+    max_budget_usd: 2.0
+    max_turns: 20
+    allowed_tools: [Read, Glob, Grep]   # read-only
+
+# --- Projects ---
+# Each project maps to a directory on your machine.
+projects:
+  ecommerce-api:
+    path: /Users/you/projects/ecommerce-api
+    language: java
+    port: 8080
+    build: mvn package -DskipTests
+    dev: mvn spring-boot:run
+    agent: java-senior              # uses java-senior profile
+    reviewer: reviewer              # for /review command
+    group: ecommerce
+    hooks:
+      before_commit: "mvn checkstyle:check"
+      after_commit: "mvn test -q"
+
+  ecommerce-web:
+    path: /Users/you/projects/ecommerce-web
+    language: php
+    port: 8000
+    build: composer install
+    dev: php artisan serve --host=0.0.0.0
+    agent: php-dev
+    group: ecommerce
+    depends_on: [ecommerce-api]
+    env:
+      API_URL: http://localhost:8080
+
+  payment-service:
+    path: /Users/you/projects/payment-service
+    language: golang
+    port: 9090
+    build: go build -o app .
+    dev: go run .
+    agent: go-dev
+    group: ecommerce
+    hooks:
+      before_commit: "go fmt ./... && go vet ./..."
+      after_commit: "go test ./..."
+
+  admin-dashboard:
+    path: /Users/you/projects/admin-dashboard
+    language: node
+    port: 3000
+    build: npm run build
+    dev: npm run dev
+    agent: default
+    group: ecommerce
+    pipeline:                         # per-project pipeline override
+      skip_preview: false
+      skip_commit: false
+    preview:                          # per-project preview override
+      provider: ngrok
+      ngrok:
+        auth_token: ${NGROK_AUTH_TOKEN}
+
+# --- Preview ---
+# Global preview defaults. Projects can override.
+preview:
+  provider: cloudflared              # ngrok | cloudflared
+  auto_preview: true
+  health_check_timeout_seconds: 60
+  ngrok:
+    auth_token: ${NGROK_AUTH_TOKEN}
+  cloudflared: {}
+
+# --- Pipeline ---
+# Global pipeline defaults. Projects can override.
+pipeline:
+  skip_preview: false
+  skip_commit: false
+  hooks:
+    # Global hooks run for all projects (unless overridden per-project)
+    # before_execute: ""
+    # after_execute: ""
+    # before_commit: ""
+    # after_commit: ""
+    # before_deploy: ""
+    # after_deploy: ""
+
+# --- Cron Jobs ---
+# Scheduled tasks. Can run shell commands or agent prompts.
+cron:
+  jobs:
+    # Run tests every 30 minutes
+    auto-test:
+      project: ecommerce-api
+      schedule:
+        type: interval
+        interval: 30m
+      action:
+        type: shell
+        command: "mvn test -q"
+
+    # Health check preview every 5 minutes
+    health-check:
+      project: ecommerce-api
+      schedule:
+        type: interval
+        interval: 5m
+      action:
+        type: health
+
+    # Git pull every morning at 9 AM
+    morning-pull:
+      project: ecommerce-api
+      schedule:
+        type: cron
+        cron: "0 9 * * 1-5"
+      action:
+        type: git_pull
+
+    # Daily code review at 6 PM
+    daily-review:
+      project: ecommerce-api
+      schedule:
+        type: cron
+        cron: "0 18 * * 1-5"
+      action:
+        type: agent
+        agent: reviewer
+        prompt: "Review changes made today. Report bugs and security issues."
+      enabled: false                  # disabled by default
+
+# --- Database ---
+database:
+  path: data/remoteclaw.db
+
+# --- EventBus ---
+eventbus:
+  workers: 4
+  queue_size: 100
+
+# --- Logging ---
+log:
+  level: info                         # debug | info | warn | error
+  format: text                        # text | json
