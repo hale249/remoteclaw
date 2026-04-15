@@ -1,0 +1,37 @@
+# RemoteClaw — Test config (minimal)
+# 1. Thay TELEGRAM_BOT_TOKEN trong .env
+# 2. Thay allowed_telegram_ids bằng ID thật
+# 3. npm run dev
+
+channels:
+  telegram:
+    bot_token: ${TELEGRAM_BOT_TOKEN}
+    mode: polling
+
+auth:
+  allowed_telegram_ids:
+    - 123456789                    # ← ĐỔI thành Telegram ID thật
+  admin_telegram_ids:
+    - 123456789
+
+agents:
+  default:
+    model: claude-sonnet-4-20250514
+    max_budget_usd: 5
+    max_turns: 50
+
+projects:
+  remoteclaw:
+    path: /Users/halv/workspaces/development/opensource/remoteclaw
+    language: node
+    agent: default
+
+preview:
+  provider: cloudflared
+
+pipeline:
+  skip_preview: true               # tắt preview khi test
+  skip_commit: true                # tắt auto-commit khi test
+
+database:
+  path: data/remoteclaw.db

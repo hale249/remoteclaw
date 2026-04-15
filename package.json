@@ -12,7 +12,14 @@
     "start": "node dist/cli.js",
     "lint": "tsc --noEmit"
   },
-  "keywords": ["ai", "agent", "claude", "telegram", "preview", "tunnel"],
+  "keywords": [
+    "ai",
+    "agent",
+    "claude",
+    "telegram",
+    "preview",
+    "tunnel"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,13 +30,14 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.0",
-    "grammy": "^1.35.0",
     "better-sqlite3": "^11.0.0",
-    "yaml": "^2.7.0",
-    "zod": "^3.24.0",
+    "dotenv": "^17.4.2",
     "execa": "^9.5.0",
+    "grammy": "^1.35.0",
     "pino": "^9.0.0",
-    "pino-pretty": "^13.0.0"
+    "pino-pretty": "^13.0.0",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",

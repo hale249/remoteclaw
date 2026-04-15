@@ -88,6 +88,12 @@ export class AgentRunner {
       maxTurns: profile.maxTurns,
       cwd: opts.workDir,
       abortController,
+      permissionMode: "bypassPermissions",  // headless — no interactive prompts
+      // Find claude executable — check common locations
+      ...(process.env.CLAUDE_PATH ? { pathToClaudeCodeExecutable: process.env.CLAUDE_PATH } : {}),
+      stderr: (data: string) => {
+        if (data.trim()) this.logger.debug({ stderr: data.trim() }, "claude stderr");
+      },
     };
 
     // System prompt

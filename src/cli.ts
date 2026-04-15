@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import pino from "pino";
